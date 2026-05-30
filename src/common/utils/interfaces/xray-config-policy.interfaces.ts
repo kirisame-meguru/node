@@ -7,6 +7,8 @@ export interface IPolicyLevel {
     statsUserUplink?: boolean;
     statsUserDownlink?: boolean;
     statsUserOnline?: boolean;
+    statsUserInboundUplink?: boolean;
+    statsUserInboundDownlink?: boolean;
 }
 
 export interface IPolicySystem {

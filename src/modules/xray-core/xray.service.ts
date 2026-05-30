@@ -188,6 +188,7 @@ export class XrayService implements OnApplicationBootstrap {
                 config: body.xrayConfig,
                 torrentBlockerState: tblockerState,
                 internal: this.internal,
+                trackedInboundTags: body.internals.trackedInboundTags,
             });
 
             await this.internalService.extractUsersFromConfig(body.internals.hashes, fullConfig);

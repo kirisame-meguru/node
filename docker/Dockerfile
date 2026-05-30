@@ -5,6 +5,8 @@ FROM node:24.22-trixie-slim AS build
 WORKDIR /opt/app
 
 COPY package*.json ./
+# [remnawave-fork] Vendored @remnawave/xtls-sdk file dependency must exist before npm ci.
+COPY vendor ./vendor
 RUN npm ci --prefer-offline --no-audit --no-fund
 
 COPY . .
@@ -20,8 +22,8 @@ RUN npm run build \
 
 FROM alpine:3.21 AS xray
 
-ARG XRAY_CORE_VERSION=v26.10.31
-ARG UPSTREAM_REPO=XTLS
+ARG XRAY_CORE_VERSION=v26.10.31-perinbound1
+ARG UPSTREAM_REPO=kirisame-meguru
 ARG TARGETARCH
 
 RUN apk add --no-cache curl \

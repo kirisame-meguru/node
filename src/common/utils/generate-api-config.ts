@@ -36,10 +36,15 @@ interface IGenerateApiConfigParams {
         token: string;
         xtlsApiSocketPath: string;
     };
+    // Inbound tags for which per-user-per-inbound traffic stats are collected.
+    // Empty/absent => the feature stays off (no policy flags, no dispatcher allowlist).
+    trackedInboundTags?: string[];
 }
 
 export const generateApiConfig = (args: IGenerateApiConfigParams): Record<string, unknown> => {
     const { config, torrentBlockerState, internal } = args;
+    const trackedInboundTags = args.trackedInboundTags ?? [];
+    const userInboundStatsEnabled = trackedInboundTags.length > 0;
 
     const policyConfig = config.policy as undefined | IPolicyConfig;
     const hasCapNetAdminResult = hasCapNetAdmin();
@@ -51,6 +56,10 @@ export const generateApiConfig = (args: IGenerateApiConfigParams): Record<string
                 statsUserUplink: XRAY_DEFAULT_POLICY_MODEL.policy.levels['0'].statsUserUplink,
                 statsUserDownlink: XRAY_DEFAULT_POLICY_MODEL.policy.levels['0'].statsUserDownlink,
                 statsUserOnline: hasCapNetAdminResult,
+                // Per-user-per-inbound counters are emitted by xray-core only when
+                // these flags are on AND the inbound tag is on the dispatcher allowlist.
+                statsUserInboundUplink: userInboundStatsEnabled,
+                statsUserInboundDownlink: userInboundStatsEnabled,
             },
         },
         system: XRAY_DEFAULT_POLICY_MODEL.policy.system,
@@ -78,6 +87,12 @@ export const generateApiConfig = (args: IGenerateApiConfigParams): Record<string
             ],
         },
     };
+
+    // Pass the per-user-per-inbound tracked tag allowlist to the xray-core
+    // dispatcher (parsed by infra/conf -> dispatcher.Config.TrackedInboundTags).
+    if (userInboundStatsEnabled) {
+        (result as Record<string, unknown>).dispatcher = { trackedInboundTags };
+    }
 
     if (torrentBlockerState.enabled) {
         const webhookUrl = buildWebhookUrl(internal);

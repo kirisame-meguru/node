@@ -24,6 +24,8 @@ import {
     GetUsersIpListResponseDto,
     GetUsersStatsRequestDto,
     GetUsersStatsResponseDto,
+    GetUsersInboundsStatsRequestDto,
+    GetUsersInboundsStatsResponseDto,
 } from './dto';
 import { GetUserIpListRequestDto, GetUserIpListResponseDto } from './dto/get-user-ip-list.dto';
 import { GeocheckService } from './geocheck.service';
@@ -76,6 +78,19 @@ export class StatsController {
     ): Promise<GetUsersStatsResponseDto> {
         const { reset } = body;
         const response = await this.statsService.getUsersStats(reset);
+        const data = errorHandler(response);
+
+        return {
+            response: data,
+        };
+    }
+
+    @Post(STATS_ROUTES.GET_USERS_INBOUNDS_STATS)
+    public async getUsersInboundsStats(
+        @Body() body: GetUsersInboundsStatsRequestDto,
+    ): Promise<GetUsersInboundsStatsResponseDto> {
+        const { reset } = body;
+        const response = await this.statsService.getUsersInboundsStats(reset);
         const data = errorHandler(response);
 
         return {
