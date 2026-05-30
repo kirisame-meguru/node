@@ -1,9 +1,9 @@
 name: Deploy lib
+# [remnawave-fork] disabled: this publishes @remnawave/node-contract to public npm, which the fork
+# cannot do. The contract is vendored into backend as a tarball instead (see ../../FORK-RESILIENCE.md).
+# Manual-only so it never auto-fails on push.
 on:
-  push:
-    paths:
-      - 'libs/**/package.json'
-      - '.github/workflows/deploy-lib.yml'
+  workflow_dispatch:
 
 jobs:
   send-start-deploy-telegram-message:

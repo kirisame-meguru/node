@@ -22,6 +22,7 @@ import {
     GetUserOnlineStatusResponseModel,
     GetUsersIpListResponseModel,
     GetUsersStatsResponseModel,
+    GetUsersInboundsStatsResponseModel,
 } from './models';
 
 
@@ -138,6 +139,43 @@ export class StatsService {
             return {
                 isOk: false,
                 ...ERRORS.FAILED_TO_GET_USERS_STATS,
+            };
+        }
+    }
+
+    public async getUsersInboundsStats(
+        reset: boolean,
+    ): Promise<ICommandResponse<GetUsersInboundsStatsResponseModel>> {
+        try {
+            const response = await this.xtlsSdk.stats.getAllUsersInboundsStats(reset);
+
+            if (!response.isOk || !response.data) {
+                this.logger.warn(response);
+
+                return {
+                    isOk: false,
+                    ...ERRORS.FAILED_TO_GET_USERS_INBOUNDS_STATS,
+                };
+            }
+
+            return {
+                isOk: true,
+                response: new GetUsersInboundsStatsResponseModel(
+                    response.data.usersInbounds
+                        .filter((row) => row.uplink !== 0 || row.downlink !== 0)
+                        .map((row) => ({
+                            username: row.username,
+                            inboundTag: row.inbound,
+                            downlink: row.downlink,
+                            uplink: row.uplink,
+                        })),
+                ),
+            };
+        } catch (error) {
+            this.logger.error(error);
+            return {
+                isOk: false,
+                ...ERRORS.FAILED_TO_GET_USERS_INBOUNDS_STATS,
             };
         }
     }

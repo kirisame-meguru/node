@@ -20,6 +20,12 @@ export const ERRORS = {
         message: 'Failed to get users stats',
         httpCode: 500,
     },
+    FAILED_TO_GET_USERS_INBOUNDS_STATS: {
+        // [remnawave-fork] F900+ band reserved for fork features; upstream-conventional code A018 (see FORK.md).
+        code: 'F900',
+        message: 'Failed to get users inbounds stats',
+        httpCode: 500,
+    },
     FAILED_TO_GET_INBOUND_STATS: {
         code: 'A012',
         message: 'Failed to get inbound stats',

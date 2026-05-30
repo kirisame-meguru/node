@@ -20,6 +20,10 @@ export namespace StartXrayCommand {
                     }),
                 ),
             }),
+            // Inbound tags for which per-user-per-inbound traffic stats should be
+            // collected. The node enables the matching Xray policy flags and passes
+            // this list to the dispatcher allowlist. Empty/absent = feature off.
+            trackedInboundTags: z.array(z.string()).optional(),
         }),
         xrayConfig: z.record(z.string(), z.unknown()),
     });

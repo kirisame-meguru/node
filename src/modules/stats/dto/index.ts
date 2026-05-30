@@ -8,3 +8,4 @@ export * from './get-system-stats.dto';
 export * from './get-user-online-status.dto';
 export * from './get-users-ip-list.dto';
 export * from './get-users-stats.dto';
+export * from './get-users-inbounds-stats.dto';

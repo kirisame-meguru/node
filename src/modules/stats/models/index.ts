@@ -9,4 +9,5 @@ export * from './get-user-ip-list.response.model';
 export * from './get-user-online-status.response';
 export * from './get-users-ip-list.response.model';
 export * from './get-users-stats.response.model';
+export * from './get-users-inbounds-stats.response.model';
 export * from './interfaces';

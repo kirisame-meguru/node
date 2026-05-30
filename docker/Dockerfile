@@ -5,6 +5,8 @@ FROM node:24.19-trixie-slim AS build
 WORKDIR /opt/app
 
 COPY package*.json ./
+# [remnawave-fork] vendored @remnawave/xtls-sdk tarball (file: dep) must exist before npm ci.
+COPY vendor ./vendor
 RUN npm ci --prefer-offline --no-audit --no-fund
 
 COPY . .
@@ -17,8 +19,13 @@ RUN npm run build \
 
 FROM alpine:3.21 AS xray
 
-ARG XRAY_CORE_VERSION=v26.7.28
-ARG UPSTREAM_REPO=XTLS
+# [remnawave-fork] pull the per-user-per-inbound xray binary from OUR xray-core fork release.
+# Cut a release on github.com/kirisame-meguru/xray-core with this tag (release.yml builds
+# Xray-linux-<arch>.zip bundling xray + geoip.dat + geosite.dat). GitHub repo names are
+# case-insensitive, so UPSTREAM_REPO=kirisame-meguru resolves .../kirisame-meguru/Xray-core/... .
+# Tag must equal the fork's xray-core release; bump the -perinboundN suffix when the XTLS base moves.
+ARG XRAY_CORE_VERSION=v26.7.28-perinbound1
+ARG UPSTREAM_REPO=kirisame-meguru
 ARG XRAY_CORE_INSTALL_SCRIPT=https://raw.githubusercontent.com/remnawave/scripts/main/scripts/install-xray.sh
 ARG ASN_LMDB_URL=https://github.com/remnawave/asn-index/releases/latest/download/asn-prefixes-lmdb.tar.gz
 
