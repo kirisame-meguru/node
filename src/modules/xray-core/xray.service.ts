@@ -155,7 +155,10 @@ export class XrayService implements OnApplicationBootstrap {
                 let shouldRestart = false;
 
                 if (isOk) {
-                    shouldRestart = this.internalService.isNeedRestartCore(body.internals.hashes);
+                    shouldRestart = this.internalService.isNeedRestartCore(
+                        body.internals.hashes,
+                        body.internals.trackedInboundTags,
+                    );
                 } else {
                     this.isXrayOnline = false;
                     shouldRestart = true;
@@ -192,6 +195,7 @@ export class XrayService implements OnApplicationBootstrap {
             });
 
             await this.internalService.extractUsersFromConfig(body.internals.hashes, fullConfig);
+            this.internalService.setTrackedInboundTags(body.internals.trackedInboundTags);
 
             await this.coreLoaderService.prepare(fullConfig.geodata);
             await this.geodataService.prepare(fullConfig.geodata);

@@ -17,6 +17,7 @@ export class InternalService {
     private emptyConfigHash: null | string = null;
     private inboundsHashMap: Map<string, HashedSet> = new Map();
     private xtlsConfigInbounds: Set<string> = new Set();
+    private trackedInboundTags: null | string[] = null;
 
     constructor() {}
 
@@ -96,8 +97,13 @@ export class InternalService {
         this.logger.log(`User extraction completed in ${result ? result : '0ms'}`);
     }
 
+    public setTrackedInboundTags(tags: string[] | undefined): void {
+        this.trackedInboundTags = [...(tags ?? [])].sort();
+    }
+
     public isNeedRestartCore(
         incomingHashes: StartXrayCommand.Request['internals']['hashes'],
+        incomingTrackedInboundTags: string[] | undefined,
     ): boolean {
         const start = performance.now();
         try {
@@ -107,6 +113,18 @@ export class InternalService {
 
             if (incomingHashes.emptyConfig !== this.emptyConfigHash) {
                 this.logger.warn('Detected changes in Xray Core base configuration');
+                return true;
+            }
+
+            const incomingTagsSorted = [...(incomingTrackedInboundTags ?? [])].sort();
+            const cachedTags = this.trackedInboundTags ?? [];
+            if (
+                cachedTags.length !== incomingTagsSorted.length ||
+                cachedTags.some((tag, idx) => tag !== incomingTagsSorted[idx])
+            ) {
+                this.logger.warn(
+                    `Per-user-per-inbound tracked tags changed (${JSON.stringify(cachedTags)} → ${JSON.stringify(incomingTagsSorted)})`,
+                );
                 return true;
             }
 
@@ -214,5 +232,6 @@ export class InternalService {
         this.xtlsConfigInbounds.clear();
         this.xrayConfig = null;
         this.emptyConfigHash = null;
+        this.trackedInboundTags = null;
     }
 }
