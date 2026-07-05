@@ -1,7 +1,7 @@
 # Fork allocation ledger — node
 
-This fork (`kirisame-meguru/node`) carries the **per-user-per-inbound traffic stats** feature on branch
-`per-user-per-inbound-traffic-stats`. See `../FORK-RESILIENCE.md` for the sync playbook and
+This fork (`kirisame-meguru/node`) carries the **per-user-per-inbound traffic stats** feature directly on
+**`main`** (`main` is the feature branch). See `../FORK-RESILIENCE.md` for the sync playbook and
 `../xray-core/FORK.md` for the rationale behind reserved-high allocation.
 
 ## Allocation table
