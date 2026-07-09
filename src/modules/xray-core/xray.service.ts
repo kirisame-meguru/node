@@ -158,10 +158,7 @@ export class XrayService implements OnApplicationBootstrap {
                 let shouldRestart = false;
 
                 if (isOk) {
-                    shouldRestart = this.internalService.isNeedRestartCore(
-                        body.internals.hashes,
-                        body.internals.trackedInboundTags,
-                    );
+                    shouldRestart = this.internalService.isNeedRestartCore(body.internals.hashes);
                 } else {
                     this.isXrayOnline = false;
                     shouldRestart = true;
@@ -195,11 +192,9 @@ export class XrayService implements OnApplicationBootstrap {
                 config: body.xrayConfig,
                 torrentBlockerState: tblockerState,
                 internal: this.internal,
-                trackedInboundTags: body.internals.trackedInboundTags,
             });
 
             await this.internalService.extractUsersFromConfig(body.internals.hashes, fullConfig);
-            this.internalService.setTrackedInboundTags(body.internals.trackedInboundTags);
 
             await this.coreLoaderService.prepare(fullConfig.geodata);
             await this.geodataService.prepare(fullConfig.geodata);
