@@ -8,20 +8,29 @@ This fork (`kirisame-meguru/node`) carries the **per-user-per-inbound traffic st
 
 | Namespace | Symbol | File | Fork value | Upstream-conventional (PR-time) |
 |-----------|--------|------|-----------|----------------------------------|
-| error code | `FAILED_TO_GET_USERS_INBOUNDS_STATS` | `libs/contract/constants/errors/errors.ts` | **F900** | A018 |
-| own package version | `@remnawave/node-contract` | `libs/contract/package.json` | 3.3.0 (fork) | revert for PR |
-| own package version | node | `package.json` | 3.3.2 (= upstream; no fork bump needed) | n/a |
+| error code | `FAILED_TO_GET_USERS_INBOUNDS_STATS` | `libs/contract/constants/errors/errors.ts` | **F900** | A019 |
+| own package version | `@remnawave/node-contract` | `libs/contract/package.json` | 3.4.2 (fork) | revert for PR |
+| own package version | node | `package.json` | 3.4.1 (= upstream; no fork bump needed) | n/a |
 | dependency spec (feature-required) | `@remnawave/xtls-sdk` | `package.json` | `file:vendor/remnawave-xtls-sdk-0.16.1.tgz` | keep; remap to upstream-published |
 
-## Base: node 3.3.2. Vision module gone → xtls-sdk unpinned
+## Base: node 3.4.1. Vision module gone → xtls-sdk unpinned
 
 node 2.8.0 **deleted the Vision/IP-block module** (no more `router.addSrcIpRule()`), which is why the
 xtls-sdk fork could finally move from the 0.12.4 pin to **0.16.1** (rebased on upstream 0.16.0). node
-3.3.2 depends on `@remnawave/xtls-sdk` 0.16.0; the fork vendors 0.16.1 as `node/vendor/*.tgz` (file:
+3.4.1 depends on `@remnawave/xtls-sdk` 0.16.0; the fork vendors 0.16.1 as `node/vendor/*.tgz` (file:
 dep) so `getAllUsersInboundsStats` is available. Upstream 3.x moved the Dockerfile to `docker/Dockerfile`;
-its `xray` stage is repointed at the fork's xray release: `XRAY_CORE_VERSION=v26.7.28-perinbound1`,
-`UPSTREAM_REPO=kirisame-meguru` (upstream uses stock `XTLS`/`v26.7.28`). A `COPY vendor ./vendor` was
+its `xray` stage is repointed at the fork's xray release: `XRAY_CORE_VERSION=v26.9.9-perinbound1`,
+`UPSTREAM_REPO=kirisame-meguru` (upstream 3.4.1 uses stock `XTLS`/`v26.7.28`). A `COPY vendor ./vendor` was
 added before `npm ci` so the file: dep resolves.
+
+The fork-only stats method now follows upstream 3.4.1's `TResult` / `ok` / `fail` error contract.
+Upstream xtls-sdk 0.17.0 still lacks `getAllUsersInboundsStats`; removing the SDK fork would require
+moving that query/parser into node using `rawClient`, a separate refactor. Removing panel tracking
+switches did not remove the statistics reader. The existing Xray `DispatchLink` path still records
+per-inbound downlink only; see `../xray-core/FORK.md`.
+
+CI publishes both `perinbound` and `sha-<full node commit>` image tags after the pinned Xray release
+exists. Docker verifies Xray's published SHA-256 before installing the binary.
 
 Error codes use a reserved **F-prefix band** (upstream uses `A###` exclusively; no code-format
 validator exists in node/backend, verified), so `F900` can never collide with upstream's next `A0##`.
@@ -51,4 +60,4 @@ unique strings → any collision is a visible git conflict; no reserved band nee
   `getAllUsersInboundsStats`), remapping it to whatever version upstream publishes.
 - The lockfiles live in a separate `chore:` commit on this branch so they can be dropped/regenerated
   cleanly; on rebase conflict, take upstream's lockfile then `npm install`.
-- Map error code **F900 → A018** at PR time.
+- Map error code **F900 → A019** at PR time.

@@ -126,22 +126,18 @@ export class StatsService {
 
     public async getUsersInboundsStats(
         reset: boolean,
-    ): Promise<ICommandResponse<GetUsersInboundsStatsResponseModel>> {
+    ): Promise<TResult<GetUsersInboundsStatsResponseModel>> {
         try {
             const response = await this.xtlsSdk.stats.getAllUsersInboundsStats(reset);
 
             if (!response.isOk || !response.data) {
                 this.logger.warn(response);
 
-                return {
-                    isOk: false,
-                    ...ERRORS.FAILED_TO_GET_USERS_INBOUNDS_STATS,
-                };
+                return fail(ERRORS.FAILED_TO_GET_USERS_INBOUNDS_STATS);
             }
 
-            return {
-                isOk: true,
-                response: new GetUsersInboundsStatsResponseModel(
+            return ok(
+                new GetUsersInboundsStatsResponseModel(
                     response.data.usersInbounds
                         .filter((row) => row.uplink !== 0 || row.downlink !== 0)
                         .map((row) => ({
@@ -151,13 +147,10 @@ export class StatsService {
                             uplink: row.uplink,
                         })),
                 ),
-            };
+            );
         } catch (error) {
             this.logger.error(error);
-            return {
-                isOk: false,
-                ...ERRORS.FAILED_TO_GET_USERS_INBOUNDS_STATS,
-            };
+            return fail(ERRORS.FAILED_TO_GET_USERS_INBOUNDS_STATS);
         }
     }
 
