@@ -9,19 +9,23 @@ This fork (`kirisame-meguru/node`) carries the **per-user-per-inbound traffic st
 | Namespace | Symbol | File | Fork value | Upstream-conventional (PR-time) |
 |-----------|--------|------|-----------|----------------------------------|
 | error code | `FAILED_TO_GET_USERS_INBOUNDS_STATS` | `libs/contract/constants/errors/errors.ts` | **F900** | A019 |
-| own package version | `@remnawave/node-contract` | `libs/contract/package.json` | 3.4.2 (fork) | revert for PR |
-| own package version | node | `package.json` | 3.4.1 (= upstream; no fork bump needed) | n/a |
-| dependency spec (feature-required) | `@remnawave/xtls-sdk` | `package.json` | `file:vendor/remnawave-xtls-sdk-0.16.1.tgz` | keep; remap to upstream-published |
+| own package version | `@remnawave/node-contract` | `libs/contract/package.json` | 3.4.3 (fork) | revert for PR |
+| own package version | node | `package.json` | 3.4.4 (= upstream; no fork bump needed) | n/a |
+| dependency spec (feature-required) | `@remnawave/xtls-sdk` | `package.json` | `file:vendor/remnawave-xtls-sdk-0.17.1.tgz` | keep; remap to upstream-published |
 
-## Base: node 3.4.1. Vision module gone → xtls-sdk unpinned
+## Base: node 3.4.4, matching upstream's released Xray
 
-node 2.8.0 **deleted the Vision/IP-block module** (no more `router.addSrcIpRule()`), which is why the
-xtls-sdk fork could finally move from the 0.12.4 pin to **0.16.1** (rebased on upstream 0.16.0). node
-3.4.1 depends on `@remnawave/xtls-sdk` 0.16.0; the fork vendors 0.16.1 as `node/vendor/*.tgz` (file:
-dep) so `getAllUsersInboundsStats` is available. Upstream 3.x moved the Dockerfile to `docker/Dockerfile`;
-its `xray` stage is repointed at the fork's xray release: `XRAY_CORE_VERSION=v26.9.9-perinbound1`,
-`UPSTREAM_REPO=kirisame-meguru` (upstream 3.4.1 uses stock `XTLS`/`v26.7.28`). A `COPY vendor ./vendor` was
-added before `npm ci` so the file: dep resolves.
+Node is rebased onto upstream tag **3.4.4**, including post-start plugins and dependency updates.
+Its SDK fork **0.17.1** is based on upstream **0.17.0** and retains `getAllUsersInboundsStats`.
+The vendored node-contract **3.4.3** also includes upstream's removal of `CipherType.NONE`; backend
+consumes the rebuilt tarball. Vision/IP-block functionality remains removed.
+
+The Dockerfile pins `XRAY_CORE_VERSION=v26.10.31-perinbound1`, `UPSTREAM_REPO=kirisame-meguru`.
+The Xray fork is exactly one feature commit over **XTLS v26.10.31**, not latest Xray/main.
+Verified by running `xray version` in upstream `ghcr.io/remnawave/node:3.4.4`:
+`Xray 26.10.31 ... a4a3dff (go1.27.3 linux/amd64)`.
+Upstream image digest: `sha256:19ca38195f699f59c0e5978489a18173234aca4b1bd29bab495b16e9d6423f70`.
+`COPY vendor ./vendor` before `npm ci` resolves the fork SDK.
 
 The fork-only stats method now follows upstream 3.4.1's `TResult` / `ok` / `fail` error contract.
 Upstream xtls-sdk 0.17.0 still lacks `getAllUsersInboundsStats`; removing the SDK fork would require
@@ -29,8 +33,26 @@ moving that query/parser into node using `rawClient`, a separate refactor. Remov
 switches did not remove the statistics reader. The existing Xray `DispatchLink` path still records
 per-inbound downlink only; see `../xray-core/FORK.md`.
 
-CI publishes both `perinbound` and `sha-<full node commit>` image tags after the pinned Xray release
-exists. Docker verifies Xray's published SHA-256 before installing the binary.
+CI publishes `3.4.4`, `perinbound`, and `sha-<full node commit>` image tags to
+`ghcr.io/kirisame-meguru/node` (linux/amd64) after the pinned Xray release exists.
+Docker verifies Xray's published SHA-256 before installing the binary. The GitHub release tag is
+`3.4.4-perinbound1`, distinct from the imported upstream source tag `3.4.4`.
+
+To upgrade an existing host, retain its environment, secrets, network settings, and mounts; set
+the Compose image to `ghcr.io/kirisame-meguru/node:3.4.4`, then run `docker compose pull` and
+`docker compose up -d`. Confirm container logs report node 3.4.4 and
+`docker compose exec <node-service> xray version` reports 26.10.31.
+
+Verification for this release: strict `npm ci`, typecheck, Rspack build, and dependency tracing
+passed. The running node reported 3.4.4 / Xray 26.10.31 over authenticated mTLS. Starting Xray,
+real VLESS traffic, opt-in/opt-out inbound statistics, and reset were exercised through the
+node API; zero-valued rows are omitted as before.
+
+GitHub rejected Actions dispatch with HTTP 422 ("Actions has been disabled for this repository")
+despite reporting enabled permissions. This release therefore uses local Docker builds and GHCR
+pushes with the same Dockerfiles, source/version/revision labels, and checksum gates. The inherited
+upstream-only `build-and-push.yml` workflow is disabled in the fork; `fork-build.yml` remains the
+configured publication workflow when GitHub permits Actions again.
 
 Error codes use a reserved **F-prefix band** (upstream uses `A###` exclusively; no code-format
 validator exists in node/backend, verified), so `F900` can never collide with upstream's next `A0##`.
