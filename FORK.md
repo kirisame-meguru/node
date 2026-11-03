@@ -48,11 +48,10 @@ passed. The running node reported 3.4.4 / Xray 26.10.31 over authenticated mTLS.
 real VLESS traffic, opt-in/opt-out inbound statistics, and reset were exercised through the
 node API; zero-valued rows are omitted as before.
 
-GitHub rejected Actions dispatch with HTTP 422 ("Actions has been disabled for this repository")
-despite reporting enabled permissions. This release therefore uses local Docker builds and GHCR
-pushes with the same Dockerfiles, source/version/revision labels, and checksum gates. The inherited
-upstream-only `build-and-push.yml` workflow is disabled in the fork; `fork-build.yml` remains the
-configured publication workflow when GitHub permits Actions again.
+Publication uses GitHub Actions `fork-build.yml`, not local image uploads. The initial HTTP 422
+dispatch rejection stopped occurring after GitHub CLI authentication was refreshed. Xray's missing
+asset cache was populated with `scheduled-assets-update.yml` before retrying its release build.
+The inherited upstream-only `build-and-push.yml` workflow is disabled in the fork.
 
 Error codes use a reserved **F-prefix band** (upstream uses `A###` exclusively; no code-format
 validator exists in node/backend, verified), so `F900` can never collide with upstream's next `A0##`.
