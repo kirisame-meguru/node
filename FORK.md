@@ -20,7 +20,7 @@ Its SDK fork **0.17.1** is based on upstream **0.17.0** and retains `getAllUsers
 The vendored node-contract **3.4.3** also includes upstream's removal of `CipherType.NONE`; backend
 consumes the rebuilt tarball. Vision/IP-block functionality remains removed.
 
-The Dockerfile pins `XRAY_CORE_VERSION=v26.10.31-perinbound1`, `UPSTREAM_REPO=kirisame-meguru`.
+The Dockerfile pins `XRAY_CORE_VERSION=v26.10.31-perinbound2`, `UPSTREAM_REPO=kirisame-meguru`.
 The Xray fork is exactly one feature commit over **XTLS v26.10.31**, not latest Xray/main.
 Verified by running `xray version` in upstream `ghcr.io/remnawave/node:3.4.4`:
 `Xray 26.10.31 ... a4a3dff (go1.27.3 linux/amd64)`.
@@ -33,17 +33,28 @@ moving that query/parser into node using `rawClient`, a separate refactor. Remov
 switches did not remove the statistics reader. The existing Xray `DispatchLink` path still records
 per-inbound downlink only; see `../xray-core/FORK.md`.
 
-CI publishes `3.4.4`, `perinbound`, and `sha-<full node commit>` image tags to
+CI publishes `3.4.4-perinbound2` and `sha-<full node commit>` image tags to
 `ghcr.io/kirisame-meguru/node` (linux/amd64) after the pinned Xray release exists.
 Docker verifies Xray's published SHA-256 before installing the binary. The GitHub release tag is
-`3.4.4-perinbound1`, distinct from the imported upstream source tag `3.4.4`.
+`3.4.4-perinbound2`, distinct from the imported upstream source tag `3.4.4`.
 
-To upgrade an existing host, retain its environment, secrets, network settings, and mounts; set
-the Compose image to `ghcr.io/kirisame-meguru/node:3.4.4`, then run `docker compose pull` and
-`docker compose up -d`. Confirm container logs report node 3.4.4 and
-`docker compose exec <node-service> xray version` reports 26.10.31.
+The `perinbound2` image contains opt-in REALITY legacy X25519 compatibility. The existing
+`3.4.4` and `perinbound` image tags are not updated by this workflow: they retain the
+`v26.10.31-perinbound1` core without that patch. Deploy by verified digest, not a moving alias.
+Keep package/API version 3.4.4 and the existing per-inbound accounting feature in both variants.
 
-Verification for this release: strict `npm ci`, typecheck, Rspack build, and dependency tracing
+For HBR-FFT, retain its environment, secrets, network settings, and mounts; deploy the verified
+`ghcr.io/kirisame-meguru/node:3.4.4-perinbound2` digest, then enable
+`inbounds[].streamSettings.realitySettings.allowLegacyX25519` only in its isolated profile.
+Do not edit the profile shared with HTC-STO02. Preserve HBR-FFT's host and squad access when
+isolating it. Confirm node 3.4.4, core release identity, health and real Mihomo Firefox HTTPS.
+Only after that acceptance passes, upgrade the other live panel nodes (XVM-AMS01, XVM-AMS02,
+HTC-STO01 and HTC-STO02) to the verified unpatched `3.4.4` image digest. Exclude stale inventory
+entries such as `lhost-was`; the panel node list is authoritative for this rollout.
+The legacy code must be absent, not merely disabled.
+Save each original image digest and Compose configuration for rollback.
+
+Verification for the preceding `3.4.4-perinbound1` release: strict `npm ci`, typecheck, Rspack build, and dependency tracing
 passed. The running node reported 3.4.4 / Xray 26.10.31 over authenticated mTLS. Starting Xray,
 real VLESS traffic, opt-in/opt-out inbound statistics, and reset were exercised through the
 node API; zero-valued rows are omitted as before.

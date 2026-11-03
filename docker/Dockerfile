@@ -22,7 +22,7 @@ RUN npm run build \
 
 FROM alpine:3.21 AS xray
 
-ARG XRAY_CORE_VERSION=v26.10.31-perinbound1
+ARG XRAY_CORE_VERSION=v26.10.31-perinbound2
 ARG UPSTREAM_REPO=kirisame-meguru
 ARG TARGETARCH
 
