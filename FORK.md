@@ -43,16 +43,25 @@ The `perinbound2` image contains opt-in REALITY legacy X25519 compatibility. The
 `v26.10.31-perinbound1` core without that patch. Deploy by verified digest, not a moving alias.
 Keep package/API version 3.4.4 and the existing per-inbound accounting feature in both variants.
 
-For HBR-FFT, retain its environment, secrets, network settings, and mounts; deploy the verified
-`ghcr.io/kirisame-meguru/node:3.4.4-perinbound2` digest, then enable
-`inbounds[].streamSettings.realitySettings.allowLegacyX25519` only in its isolated profile.
-Do not edit the profile shared with HTC-STO02. Preserve HBR-FFT's host and squad access when
-isolating it. Confirm node 3.4.4, core release identity, health and real Mihomo Firefox HTTPS.
-Only after that acceptance passes, upgrade the other live panel nodes (XVM-AMS01, XVM-AMS02,
-HTC-STO01 and HTC-STO02) to the verified unpatched `3.4.4` image digest. Exclude stale inventory
-entries such as `lhost-was`; the panel node list is authoritative for this rollout.
-The legacy code must be absent, not merely disabled.
-Save each original image digest and Compose configuration for rollback.
+The live fleet uses the patched `3.4.4-perinbound2` image at
+`sha256:16d16678aff4681322058247719905f22493b7e4f9071ccea97345dbf8f48c83`.
+HBR-FFT was upgraded and accepted first, with its own profile preserving host/squad access.
+XVM-AMS01, XVM-AMS02, HTC-STO01 and HTC-STO02 then received the same patched image.
+`inbounds[].streamSettings.realitySettings.allowLegacyX25519` is enabled on the REALITY
+inbounds used by the verified subscriptions. Mihomo itself and subscription fingerprints
+were not changed by this rollout.
+The panel node list is authoritative; stale inventory entries such as `lhost-was` are excluded.
+
+All five nodes report node 3.4.4 / Xray `v26.10.31-perinbound2`, are connected to the panel,
+and returned HTTPS 204 with stock Mihomo v1.19.33 using Firefox and real subscription credentials.
+The Amsterdam subscriptions also passed with their existing Edge fingerprints. HBR-FFT rejected
+wrong public key, SNI, short ID and UUID. This verifies connectivity and authorization, not load
+capacity or resistance to every network filtering system.
+
+Each host retains its original Compose configuration, container inspection and relevant panel
+profile in root-only `/opt/remnanode/20261103-reality-7f6dff35/`; original images were not pruned.
+Restore both the image and corresponding profile when rolling back to a core without this option.
+The prior unpatched 3.4.4 image remains available, but is not the deployed fleet image.
 
 Verification for the preceding `3.4.4-perinbound1` release: strict `npm ci`, typecheck, Rspack build, and dependency tracing
 passed. The running node reported 3.4.4 / Xray 26.10.31 over authenticated mTLS. Starting Xray,
